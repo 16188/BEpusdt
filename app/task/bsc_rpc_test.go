@@ -14,7 +14,7 @@ func TestBscRPCFailoverHelpers(t *testing.T) {
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		if r.Method == http.MethodGet {
-			fmt.Fprintf(w, `[{"chainId":56,"rpc":[{"url":"http://unsafe.example"},{"url":"%s","tracking":"none"}]}]`, serverURL(r))
+			fmt.Fprint(w, `[{"chainId":56,"rpc":[{"url":"http://unsafe.example"},{"url":"https://rpc.example","tracking":"none"}]}]`)
 			return
 		}
 		fmt.Fprint(w, `[
@@ -27,10 +27,10 @@ func TestBscRPCFailoverHelpers(t *testing.T) {
 	defer server.Close()
 
 	endpoints, err := loadBscRPCs(context.Background(), server.Client(), server.URL)
-	if err != nil || len(endpoints) != 1 || endpoints[0] != server.URL {
+	if err != nil || len(endpoints) != 1 || endpoints[0] != "https://rpc.example" {
 		t.Fatalf("unexpected Chainlist endpoints: %v, %v", endpoints, err)
 	}
-	if err := probeBscRPC(context.Background(), server.Client(), endpoints[0]); err != nil {
+	if err := probeBscRPC(context.Background(), server.Client(), server.URL); err != nil {
 		t.Fatal(err)
 	}
 
@@ -47,8 +47,4 @@ func TestBscRPCFailoverHelpers(t *testing.T) {
 	if conf.SuccessRate(network) != 100 {
 		t.Fatalf("expected reset rate to be 100, got %s", conf.GetSuccessRate(network))
 	}
-}
-
-func serverURL(r *http.Request) string {
-	return "https://" + r.Host
 }
