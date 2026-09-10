@@ -57,6 +57,13 @@ Docker 快速启动，执行完命令打开地址`http://服务器IP:8080`即可
 ```bash  
 docker run -d --restart=unless-stopped -p 8080:8080 v03413/bepusdt:latest
 ```
+
+本分支镜像（自动切换低成功率 BSC RPC）：
+
+```bash
+docker run -d --restart=unless-stopped -p 8080:8080 ghcr.io/16188/bepusdt:latest
+```
+
 ## 📃 技术文档  
 
 - 安装：[Docker](docs/docker/docker.md) [Linux](docs/linux/install.md) [1Panel](./docs/1panel/README.md) [宝塔](./docs/bt_panel/README.md)

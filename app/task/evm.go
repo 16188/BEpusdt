@@ -65,6 +65,7 @@ func (e *evm) syncBlocksForward(ctx context.Context) {
 	post := []byte(`{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}`)
 	req, err := http.NewRequestWithContext(ctx, "POST", e.rpcEndpoint(), bytes.NewBuffer(post))
 	if err != nil {
+		conf.RecordFailure(e.Network)
 		log.Task.Warn("Error creating request:", err)
 
 		return
@@ -73,6 +74,7 @@ func (e *evm) syncBlocksForward(ctx context.Context) {
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := e.Client.Do(req)
 	if err != nil {
+		conf.RecordFailure(e.Network)
 		log.Task.Warn("Error sending request:", err)
 
 		return
@@ -82,6 +84,7 @@ func (e *evm) syncBlocksForward(ctx context.Context) {
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		conf.RecordFailure(e.Network)
 		log.Task.Warn("Error reading response body:", err)
 
 		return
@@ -89,6 +92,7 @@ func (e *evm) syncBlocksForward(ctx context.Context) {
 
 	var res = gjson.ParseBytes(body)
 	if !res.IsObject() {
+		conf.RecordFailure(e.Network)
 		log.Task.Warn(fmt.Sprintf("EVM 数据解析错误(%s): %s", e.Network, string(body)))
 
 		return
@@ -96,6 +100,7 @@ func (e *evm) syncBlocksForward(ctx context.Context) {
 
 	var now = utils.HexStr2Int(res.Get("result").String()).Int64() - e.Block.RollDelayOffset
 	if now <= 0 {
+		conf.RecordFailure(e.Network)
 
 		return
 	}
@@ -228,8 +233,6 @@ func (e *evm) getBlockByNumber(a any) {
 		return
 	}
 
-	conf.RecordSuccess(e.Network, cast.ToString(b.To))
-
 	nativeTransfers := make([]transfer, 0)
 	blockTimestamp := make(map[string]time.Time)
 	for _, itm := range gjson.ParseBytes(body).Array() {
@@ -269,6 +272,7 @@ func (e *evm) getBlockByNumber(a any) {
 		transferQueue.In <- transfers
 	}
 
+	conf.RecordSuccess(e.Network, cast.ToString(b.To))
 	log.Task.Info(fmt.Sprintf("区块扫描完成(%s): %d → %d 成功率：%s", e.Network, b.From, b.To, conf.GetSuccessRate(e.Network)))
 }
 

@@ -35,10 +35,8 @@ func getStat(net string) *stat {
 }
 
 func RecordSuccess(net, block string) {
-	last.Store(net, info{Block: block, Succ: GetSuccessRate(net), Time: time.Now().Unix()})
 	s := getStat(net)
 	s.mu.Lock()
-	defer s.mu.Unlock()
 
 	if s.total >= maxRecords && !s.records[s.index] {
 		s.succ++
@@ -51,12 +49,14 @@ func RecordSuccess(net, block string) {
 	if s.total < maxRecords {
 		s.total++
 	}
+	s.mu.Unlock()
+
+	last.Store(net, info{Block: block, Succ: GetSuccessRate(net), Time: time.Now().Unix()})
 }
 
 func RecordFailure(net string) {
 	s := getStat(net)
 	s.mu.Lock()
-	defer s.mu.Unlock()
 
 	if s.total >= maxRecords && s.records[s.index] {
 		s.succ--
@@ -66,6 +66,14 @@ func RecordFailure(net string) {
 	s.index = (s.index + 1) % maxRecords
 	if s.total < maxRecords {
 		s.total++
+	}
+	s.mu.Unlock()
+
+	if value, ok := last.Load(net); ok {
+		current := value.(info)
+		current.Succ = GetSuccessRate(net)
+		current.Time = time.Now().Unix()
+		last.Store(net, current)
 	}
 }
 
@@ -81,13 +89,34 @@ func GetStats() map[string]info {
 }
 
 func GetSuccessRate(net string) string {
+	return fmt.Sprintf("%.2f%%", SuccessRate(net))
+}
+
+func SuccessRate(net string) float64 {
 	s := getStat(net)
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	if s.total == 0 {
-		return "100.00%"
+		return 100
 	}
 
-	return fmt.Sprintf("%.2f%%", float64(s.succ)/float64(s.total)*100)
+	return float64(s.succ) / float64(s.total) * 100
+}
+
+func ResetStats(net string) {
+	s := getStat(net)
+	s.mu.Lock()
+	s.records = make([]bool, maxRecords)
+	s.index = 0
+	s.total = 0
+	s.succ = 0
+	s.mu.Unlock()
+
+	if value, ok := last.Load(net); ok {
+		current := value.(info)
+		current.Succ = GetSuccessRate(net)
+		current.Time = time.Now().Unix()
+		last.Store(net, current)
+	}
 }
