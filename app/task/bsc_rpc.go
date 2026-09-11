@@ -57,9 +57,8 @@ func (e *evm) failoverBscRPC(ctx context.Context) {
 			continue
 		}
 
-		model.SetK(model.RpcEndpointBsc, endpoint)
-		if model.GetC(model.RpcEndpointBsc) != endpoint {
-			log.Task.Warn("BSC RPC 自动切换：保存新节点失败")
+		if err := model.SetK(model.RpcEndpointBsc, endpoint); err != nil {
+			log.Task.Warn("BSC RPC 自动切换：保存新节点失败:", err)
 			return
 		}
 

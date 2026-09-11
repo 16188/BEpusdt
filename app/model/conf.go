@@ -65,8 +65,8 @@ func (c Conf) TableName() string {
 	return "bep_conf"
 }
 
-func SetK(k ConfKey, v string) {
-	if err = Db.Transaction(func(db *gorm.DB) error {
+func SetK(k ConfKey, v string) error {
+	if err := Db.Transaction(func(db *gorm.DB) error {
 		if err2 := db.Where("k = ?", k).Delete(&Conf{}).Error; err2 != nil {
 
 			return err2
@@ -76,12 +76,15 @@ func SetK(k ConfKey, v string) {
 			return err2
 		}
 
-		defer RefreshC()
-
 		return nil
 	}); err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, fmt.Sprintf("设置配置项 %s 错误：%s", k, err.Error()))
+
+		return err
 	}
+
+	confCache.Store(k, v)
+	return nil
 }
 
 func GetK(k ConfKey) string {
