@@ -4,6 +4,7 @@
     var i18nReady = false;
     var lang = 'zh';
     var LANG_STORAGE_KEY = 'bepusdt-cashier-lang';
+    var LOCALE_VERSION = '20260911-3';
     var SVG_C = '<svg width="W" height="W" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
     var SVG_K = '<svg width="W" height="W" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
     var WEB3 = '/checkout/official/assets/web3icons';
@@ -52,7 +53,7 @@
             if (typeof i18next === 'undefined') return resolve();
             i18next.init({ lng: lang, debug: false, resources: {} }, function (err) {
                 if (err) return resolve();
-                fetch('/checkout/official/assets/locales/' + lang + '.json')
+                fetch('/checkout/official/assets/locales/' + lang + '.json?v=' + LOCALE_VERSION)
                     .then(function (r) { return r.json(); })
                     .then(function (d) {
                         i18next.addResourceBundle(lang, 'translation', d);
@@ -107,7 +108,7 @@
         if (typeof i18next === 'undefined') return;
         lang = l;
         try { localStorage.setItem(LANG_STORAGE_KEY, l); } catch (e) {}
-        fetch('/checkout/official/assets/locales/' + l + '.json')
+        fetch('/checkout/official/assets/locales/' + l + '.json?v=' + LOCALE_VERSION)
             .then(function (r) { return r.json(); })
             .then(function (d) {
                 i18next.addResourceBundle(l, 'translation', d, true, true);

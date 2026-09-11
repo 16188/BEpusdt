@@ -54,7 +54,7 @@ func Handler() *gin.Engine {
 			return
 		}
 
-		ctx.HTML(200, "index.html", gin.H{"title": conf.Desc, "url": conf.Github})
+		ctx.String(http.StatusOK, "ok")
 	})
 
 	{
