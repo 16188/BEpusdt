@@ -47,12 +47,14 @@ body {
 }
 
 .brand { display: flex; align-items: center; min-width: 0; }
-.brand-logo-image {
-    width: 162px;
+.brand-wordmark {
     height: 40px;
-    display: block;
-    object-fit: contain;
-    object-position: left center;
+    display: inline-flex;
+    align-items: center;
+    color: var(--color-accent);
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -.6px;
 }
 .header-actions {
     display: flex;
@@ -673,7 +675,6 @@ body {
 }
 
 @media (max-width: 360px) {
-    .brand-logo-image { width: 142px; }
     .amount-fiat { font-size: 22px; }
     #paymentStage .amount-crypto-value { font-size: 26px; }
 }

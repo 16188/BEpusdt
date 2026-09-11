@@ -48,13 +48,13 @@ func TestOfficialCheckoutCustomizationIsEmbedded(t *testing.T) {
 		t.Fatalf("read official checkout template: %v", err)
 	}
 	html := string(view)
-	if !strings.Contains(html, "pay-with-crypto.svg") || !strings.Contains(html, "data-language-toggle") {
+	if !strings.Contains(html, `class="brand-wordmark">Crypto</span>`) || !strings.Contains(html, "data-language-toggle") {
 		t.Fatal("official checkout must include the custom logo and language toggle")
+	}
+	if !strings.Contains(html, "checkout.css?v=") || !strings.Contains(html, "checkout.js?v=") {
+		t.Fatal("official checkout assets must use cache-busting URLs")
 	}
 	if strings.Contains(html, "Powered by") || strings.Contains(html, "card-footer") || strings.Contains(html, "modal-footer") {
 		t.Fatal("official checkout must not include copyright footers")
-	}
-	if _, err := fs.ReadFile(static.Checkout, "checkout/official/assets/img/pay-with-crypto.svg"); err != nil {
-		t.Fatalf("read official checkout logo: %v", err)
 	}
 }
