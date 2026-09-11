@@ -46,23 +46,37 @@ body {
     padding: 20px 24px 0;
 }
 
-.brand { display: flex; align-items: center; gap: 10px; }
-.brand-logo {
-    width: 40px;
+.brand { display: flex; align-items: center; min-width: 0; }
+.brand-logo-image {
+    width: 162px;
     height: 40px;
-    background: var(--color-btn);
-    border-radius: 8px;
+    display: block;
+    object-fit: contain;
+    object-position: left center;
+}
+.header-actions {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 8px;
+    margin-left: 12px;
 }
-.brand-logo svg { width: 32px; height: 32px; }
-.brand-name {
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--color-text-primary);
-    letter-spacing: -.3px;
+.language-toggle {
+    height: 32px;
+    min-width: 38px;
+    padding: 0 9px;
+    border: 1.5px solid var(--color-border);
+    border-radius: 16px;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+    transition: all .2s;
 }
+.language-toggle:hover { border-color: var(--color-text-secondary); color: var(--color-text-primary); }
+.language-toggle:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 
 .help-btn {
     width: 32px;
@@ -377,7 +391,7 @@ body {
 }
 .dropdown-item.selected .item-check-icon { opacity: 1; }
 
-.pay-btn-wrap { padding: 16px 24px 20px; }
+.pay-btn-wrap { padding: 16px 24px 24px; }
 .pay-btn {
     width: 100%;
     padding: 11px;
@@ -399,39 +413,7 @@ body {
 .pay-btn:active:not(:disabled) { transform: translateY(0); }
 .pay-btn:disabled { background: #d1d5db; cursor: not-allowed; transform: none; box-shadow: none; }
 
-.card-footer {
-    padding: 12px 24px 16px;
-    text-align: center;
-    border-top: 1px solid var(--color-border);
-    background: #f0f2f5;
-    border-bottom-left-radius: var(--radius-card);
-    border-bottom-right-radius: var(--radius-card);
-}
-.footer-powered {
-    font-size: 12px;
-    color: var(--color-text-muted);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-}
-.footer-powered a {
-    color: #667eea;
-    text-decoration: none;
-    font-weight: 600;
-    transition: color .15s;
-}
-.footer-powered a:hover { color: #5a6fd6; }
-.footer-github {
-    display: flex;
-    align-items: center;
-    color: var(--color-text-muted) !important;
-    font-weight: normal !important;
-    transition: color .15s;
-}
-.footer-github:hover { color: var(--color-text-primary) !important; }
-
-.qr-stage { padding: 20px 24px 0; }
+.qr-stage { padding: 20px 24px 24px; }
 .qr-wrapper {
     position: relative;
     display: flex;
@@ -664,28 +646,6 @@ body {
 }
 .return-btn:hover { background: #1a1a1a; transform: translateY(-1px); }
 
-.modal-footer {
-    padding: 12px 20px;
-    border-top: 1px solid #f0f0f0;
-    background: #f0f2f5;
-    font-size: 12px;
-    color: #b0b8c8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-}
-.modal-footer a { color: #667eea; text-decoration: none; font-weight: 600; transition: color .15s; }
-.modal-footer a:hover { color: #5a6fd6; }
-.modal-footer-github {
-    display: flex;
-    align-items: center;
-    color: var(--color-text-muted) !important;
-    font-weight: normal !important;
-    transition: color .15s;
-}
-.modal-footer-github:hover { color: var(--color-text-primary) !important; }
-
 .confirming-spinner {
     width: 56px;
     height: 56px;
@@ -713,6 +673,7 @@ body {
 }
 
 @media (max-width: 360px) {
+    .brand-logo-image { width: 142px; }
     .amount-fiat { font-size: 22px; }
     #paymentStage .amount-crypto-value { font-size: 26px; }
 }

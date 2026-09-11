@@ -14,10 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - name: Set image version
+        id: version
+        run: echo "value=custom-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - run: go test ./app/model ./app/conf ./app/task
+      - run: go test ./app/model ./app/conf ./app/task ./app/router
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -36,3 +39,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ steps.version.outputs.value }}

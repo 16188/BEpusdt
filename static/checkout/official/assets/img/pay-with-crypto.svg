@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 44" role="img" aria-labelledby="title">
+  <title id="title">Pay With Crypto</title>
+  <g fill="none" stroke="#20c7b7" stroke-linecap="round" stroke-width="5.5">
+    <path d="M34 10.5A16.5 16.5 0 0 0 12 9"/>
+    <path d="M7.5 15.5A16.5 16.5 0 0 0 7.5 29"/>
+    <path d="M12 35.5A16.5 16.5 0 0 0 34 34"/>
+  </g>
+  <text x="48" y="19" fill="#172033" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700">Pay With</text>
+  <text x="48" y="37" fill="#20bfae" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700">Crypto</text>
+</svg>

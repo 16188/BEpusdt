@@ -3,6 +3,7 @@
 
     var i18nReady = false;
     var lang = 'zh';
+    var LANG_STORAGE_KEY = 'bepusdt-cashier-lang';
     var SVG_C = '<svg width="W" height="W" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
     var SVG_K = '<svg width="W" height="W" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
     var WEB3 = '/checkout/official/assets/web3icons';
@@ -12,14 +13,41 @@
     var cfg = {}, tradeId = '';
     var cdTimer = null, stTimer = null;
 
+    function normalizeLang(value) {
+        value = String(value || '').toLowerCase();
+        if (value === 'zh' || value.indexOf('zh-') === 0) return 'zh';
+        if (value === 'en' || value.indexOf('en-') === 0) return 'en';
+        return '';
+    }
+
     function detectLang() {
-        try {
-            return ((navigator.language || navigator.userLanguage || 'en').toLowerCase().indexOf('zh') === 0) ? 'zh' : 'en';
-        } catch (e) { return 'en'; }
+        var detected = '';
+        try { detected = normalizeLang(new URLSearchParams(window.location.search).get('lang')); } catch (e) {}
+        if (detected) return detected;
+        try { detected = normalizeLang(localStorage.getItem(LANG_STORAGE_KEY)); } catch (e) {}
+        if (detected) return detected;
+        try { return normalizeLang(navigator.language || navigator.userLanguage) || 'en'; } catch (e) { return 'en'; }
+    }
+
+    function updateLanguageToggles() {
+        document.querySelectorAll('[data-language-toggle]').forEach(function (button) {
+            button.textContent = lang === 'zh' ? 'EN' : '中';
+            button.setAttribute('aria-pressed', lang === 'en' ? 'true' : 'false');
+        });
+    }
+
+    function bindLanguageToggles() {
+        updateLanguageToggles();
+        document.querySelectorAll('[data-language-toggle]').forEach(function (button) {
+            if (button.dataset.bound) return;
+            button.dataset.bound = '1';
+            button.addEventListener('click', function () { switchLang(lang === 'zh' ? 'en' : 'zh'); });
+        });
     }
 
     function initI18n() {
         lang = detectLang();
+        bindLanguageToggles();
         return new Promise(function (resolve) {
             if (typeof i18next === 'undefined') return resolve();
             i18next.init({ lng: lang, debug: false, resources: {} }, function (err) {
@@ -62,6 +90,12 @@
             if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = tr;
             else el.innerHTML = tr;
         });
+        document.querySelectorAll('.dropdown-search').forEach(function (el) { el.placeholder = t('searchPlaceholder', '搜索'); });
+        document.querySelectorAll('.item-badge').forEach(function (el) { el.textContent = t('hotBadge', '热门'); });
+        document.querySelectorAll('[data-network-name]').forEach(function (el) {
+            el.textContent = t('networkPrefix', '区块网络 · ') + el.dataset.networkName;
+        });
+        updateLanguageToggles();
         try {
             document.title = i18next.t('pageTitle');
             document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
@@ -72,6 +106,7 @@
         if (l !== 'zh' && l !== 'en') { console.warn('Use "zh" or "en"'); return; }
         if (typeof i18next === 'undefined') return;
         lang = l;
+        try { localStorage.setItem(LANG_STORAGE_KEY, l); } catch (e) {}
         fetch('/checkout/official/assets/locales/' + l + '.json')
             .then(function (r) { return r.json(); })
             .then(function (d) {
@@ -163,7 +198,11 @@
                     img.alt = it.label;
                     img.addEventListener('error', function () { img.style.visibility = 'hidden'; });
                     trigger.insertBefore(img, trigger.firstChild);
-                    if (txt) { txt.textContent = it.label; txt.classList.remove('placeholder'); }
+                    if (txt) {
+                        txt.textContent = it.label;
+                        txt.classList.remove('placeholder');
+                        txt.removeAttribute('data-i18n');
+                    }
                     dd.classList.remove('open');
                     trigger.classList.remove('open');
                     if (onSelect) onSelect(it.value, it);
@@ -201,7 +240,11 @@
         var img = trigger.querySelector('.select-img');
         if (img) img.remove();
         var txt = trigger.querySelector('.select-text');
-        if (txt) { txt.textContent = ph; txt.classList.add('placeholder'); }
+        if (txt) {
+            txt.textContent = ph;
+            txt.classList.add('placeholder');
+            txt.setAttribute('data-i18n', id === 'currencySelect' ? 'selectCurrency' : 'selectNetwork');
+        }
         var list = w.querySelector('.dropdown-list');
         if (list) list.querySelectorAll('.dropdown-item').forEach(function (d) { d.classList.remove('selected'); });
     }
@@ -302,12 +345,18 @@
         if (!aEl) return;
         if (selMethod) {
             aEl.textContent = selMethod.actual_amount + ' ' + selMethod.currency;
-            if (nEl) nEl.textContent = t('networkPrefix', '区块网络 · ') + selMethod.token_net_name;
+            if (nEl) {
+                nEl.dataset.networkName = selMethod.token_net_name;
+                nEl.textContent = t('networkPrefix', '区块网络 · ') + selMethod.token_net_name;
+            }
             if (lineEl) lineEl.style.display = 'flex';
             if (rowEl) rowEl.style.display = '';
         } else {
             aEl.textContent = '--';
-            if (nEl) nEl.textContent = '';
+            if (nEl) {
+                delete nEl.dataset.networkName;
+                nEl.textContent = '';
+            }
             if (lineEl) lineEl.style.display = 'none';
             if (rowEl) rowEl.style.display = 'none';
         }
@@ -449,11 +498,12 @@
                         '<path d="M9 9l6 6"/>' +
                     '</svg>' +
                 '</div>' +
-                '<div class="modal-title" style="color:#475569;">' + t('canceledTitle', '订单已取消') + '</div>' +
-                '<p class="modal-subtitle">' + t('canceledMessage', '该订单已取消，不能继续付款。<br>如需支付，请重新发起订单。') + '</p>' +
-                '<a href="' + ret + '" class="return-btn">' + t('returnBtn', '返回商户平台') + '</a>' +
+                '<div class="modal-title" style="color:#475569;" data-i18n="canceledTitle">' + t('canceledTitle', '订单已取消') + '</div>' +
+                '<p class="modal-subtitle" data-i18n="[html]canceledMessage">' + t('canceledMessage', '该订单已取消，不能继续付款。<br>如需支付，请重新发起订单。') + '</p>' +
+                '<a href="' + ret + '" class="return-btn" data-i18n="returnBtn">' + t('returnBtn', '返回商户平台') + '</a>' +
                 '</div></div>';
             document.body.appendChild(modal);
+            applyI18n();
         }
         modal.style.display = 'flex';
         showToast(t('orderCanceledToast', '订单已取消'), 'error');
@@ -473,11 +523,12 @@
                     '<polyline points="12 6 12 12 16 14"/>' +
                 '</svg>' +
             '</div>' +
-            '<div class="modal-title" style="color:#ef4444;">' + t('timeoutTitle', '支付已超时') + '</div>' +
-            '<p class="modal-subtitle">' + t('timeoutMessage', '很抱歉，支付时间已超时。<br>请重新发起支付。') + '</p>' +
-            '<a href="' + ret + '" class="return-btn">' + t('returnBtn', '返回商户平台') + '</a>' +
+            '<div class="modal-title" style="color:#ef4444;" data-i18n="timeoutTitle">' + t('timeoutTitle', '支付已超时') + '</div>' +
+            '<p class="modal-subtitle" data-i18n="[html]timeoutMessage">' + t('timeoutMessage', '很抱歉，支付时间已超时。<br>请重新发起支付。') + '</p>' +
+            '<a href="' + ret + '" class="return-btn" data-i18n="returnBtn">' + t('returnBtn', '返回商户平台') + '</a>' +
             '</div></div>';
         document.body.appendChild(ov);
+        applyI18n();
     }
 
     function createTransaction() {
@@ -678,7 +729,9 @@
         document.getElementById('orderMoneyQ').textContent = d.money || '--';
         document.getElementById('orderFiatQ').textContent = d.fiat || '';
         document.getElementById('payAmountQ').textContent = amount + ' ' + currency;
-        document.getElementById('payNetworkQ').textContent = _t('networkPrefix', '区块网络 · ') + netName;
+        var networkLabel = document.getElementById('payNetworkQ');
+        networkLabel.dataset.networkName = netName;
+        networkLabel.textContent = _t('networkPrefix', '区块网络 · ') + netName;
         document.getElementById('orderIdQ').textContent = d.order_id || '--';
         var paymentAddress = d.token || d.address || '';
         renderWalletAddress(paymentAddress);
