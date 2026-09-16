@@ -71,7 +71,7 @@ export default defineConfig(({ mode }) => {
       terserOptions: {
         compress: {
           keep_infinity: true, // 防止 Infinity 被压缩成 1/0，这可能会导致 Chrome 上的性能问题
-          drop_console: true, // 生产环境去除 console
+          drop_console: false, // 保留生产环境错误日志，便于定位动态路由加载失败
           drop_debugger: true // 生产环境去除 debugger
         },
         format: {

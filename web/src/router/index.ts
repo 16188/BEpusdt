@@ -87,9 +87,25 @@ router.beforeEach(async (to: any, _: any, next: any) => {
 });
 
 // 路由跳转错误
-router.onError((error: any) => {
+router.onError((error: any, to: any, from: any) => {
   NProgress.done();
-  console.warn("路由错误", error.message);
+  console.error("[BEpusdt] 路由加载失败", {
+    to: to?.fullPath,
+    from: from?.fullPath,
+    message: error?.message,
+    error
+  });
+
+  const message = String(error?.message || "");
+  if (/dynamically imported module|Loading chunk|ChunkLoadError/i.test(message)) {
+    const reloadKey = "bepusdt-route-reload";
+    const lastReload = Number(sessionStorage.getItem(reloadKey) || 0);
+    if (Date.now() - lastReload > 30000) {
+      sessionStorage.setItem(reloadKey, String(Date.now()));
+      const basePath = window.location.pathname;
+      window.location.replace(`${basePath}?reload=${Date.now()}${window.location.hash}`);
+    }
+  }
 });
 
 // 路由加载后

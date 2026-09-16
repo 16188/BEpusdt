@@ -116,6 +116,8 @@ func noRoute() gin.HandlerFunc {
 
 			return
 		}
+
+		ctx.String(http.StatusNotFound, "not found")
 	}
 }
 

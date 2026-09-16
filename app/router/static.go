@@ -54,7 +54,26 @@ func staticInit(e *gin.Engine) {
 
 	e.SetHTMLTemplate(tmpl)
 	e.StaticFS("/payment/assets", http.FS(subFS(static.Payment, "payment/assets")))
-	e.StaticFS("/secure/assets", http.FS(subFS(static.Secure, "secure/assets")))
+	registerSecureAssets(e, subFS(static.Secure, "secure/assets"))
+}
+
+func registerSecureAssets(e *gin.Engine, assets fs.FS) {
+	files := http.StripPrefix("/secure/assets", http.FileServer(http.FS(assets)))
+	handler := func(ctx *gin.Context) {
+		ctx.Header("Cache-Control", "no-store")
+
+		name := strings.TrimPrefix(ctx.Param("filepath"), "/")
+		info, err := fs.Stat(assets, name)
+		if err != nil || info.IsDir() {
+			fmt.Printf("[WARN] 后台静态资源不存在：%s，来源：%s\n", ctx.Request.URL.Path, ctx.GetHeader("Referer"))
+			ctx.String(http.StatusNotFound, "asset not found")
+			return
+		}
+
+		files.ServeHTTP(ctx.Writer, ctx.Request)
+	}
+	e.GET("/secure/assets/*filepath", handler)
+	e.HEAD("/secure/assets/*filepath", handler)
 }
 
 func checkoutSource() (fs.FS, string, string) {
