@@ -111,6 +111,7 @@ func noRoute() gin.HandlerFunc {
 			session.Set(conf.AdminSecureK, true)
 			_ = session.Save()
 
+			ctx.Header("Cache-Control", "no-store")
 			ctx.HTML(http.StatusOK, "secure.html", gin.H{})
 
 			return

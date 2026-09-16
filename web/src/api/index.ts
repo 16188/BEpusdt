@@ -60,7 +60,7 @@ service.interceptors.response.use(
 
       // 跳转到登录页（保留当前路径前缀，如 /admin）
       const basePath = window.location.pathname.split("#")[0];
-      window.location.href = `${basePath}#/login`;
+      window.location.href = `${basePath}?reload=${Date.now()}#/login`;
 
       return Promise.reject(res);
     }
@@ -90,7 +90,7 @@ service.interceptors.response.use(
 
         const basePath = window.location.pathname.split("#")[0];
 
-        return (window.location.href = `${basePath}#/login`);
+        return (window.location.href = `${basePath}?reload=${Date.now()}#/login`);
       }
 
       return Message.error(error.message || "请求失败");
