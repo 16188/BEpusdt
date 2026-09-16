@@ -43,17 +43,6 @@ func Handler() *gin.Engine {
 			return
 		}
 
-		sess := sessions.Default(ctx)
-		if secure, ok := sess.Get(conf.AdminSecureK).(bool); ok && secure {
-			ctx.HTML(200, "secure.html", gin.H{})
-			return
-		}
-
-		if url := model.GetC(model.HomeRedirectUrl); url != "" {
-			ctx.Redirect(302, url)
-			return
-		}
-
 		ctx.String(http.StatusOK, "ok")
 	})
 
@@ -122,7 +111,7 @@ func noRoute() gin.HandlerFunc {
 			session.Set(conf.AdminSecureK, true)
 			_ = session.Save()
 
-			ctx.Redirect(302, "/#/login")
+			ctx.HTML(http.StatusOK, "secure.html", gin.H{})
 
 			return
 		}
